@@ -1,0 +1,61 @@
+name: Action
+
+on:
+  workflow_dispatch:
+    schedule:
+      - cron: 20 5 * * *
+
+    inputs:
+      ssh:
+        description: "ssh"
+        required: true
+        default: "false"
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 更改交换空间并link构建空间
+        uses: zhlhlf/maximize-build-space@master
+        with:
+          swap-size-mb: 8192
+
+      - name: 获取本仓库源码
+        uses: actions/checkout@main
+
+      - name: Cache Cookies
+        id: cache-primes
+        uses: actions/cache@v4
+        with:
+          path: .token
+          key: ${{ runner.os }}-by_zhlhlf
+
+      - name: 安装node.js环境
+        uses: actions/setup-node@main
+        with:
+          node-version: 18
+
+      - name: 注入私有Secrets到环境
+        uses: zhlhlf/Secrets_To_Env@master
+        with:
+          secrets_json: ${{ toJSON(secrets) }}
+
+      - name: 高级操作
+        if: github.event.inputs.ssh == 'true'
+        run: |
+          curl -SL http://raw.github.com/zhlhlf/text/main/ssh.sh | sudo bash
+
+      - name: 执行
+        run: |
+          npm install >/dev/null 2>&1
+          npm start
+
+      - name: Delete old workflow run
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 2
