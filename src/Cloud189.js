@@ -20,9 +20,9 @@ const mask = (s, start, end) => {
 let timeout = 10000;
 
 const doTask = async (cloudClient) => {
-  let result = [];
+  const result = [];
   let signPromises1 = [];
-  let getSpace = [`${firstSpace}签到个人云获得(M)`];
+  const personalBonus = [];
 
   for (let m = 0; m < process.env.PRIVATE_THREADX; m++) {
     signPromises1.push(
@@ -30,46 +30,44 @@ const doTask = async (cloudClient) => {
         try {
           const res1 = await cloudClient.userSign();
           if (!res1.isSign && res1.netdiskBonus) {
-            getSpace.push(` ${res1.netdiskBonus}`);
+            personalBonus.push(res1.netdiskBonus);
           }
         } catch (e) {}
       })()
     );
   }
-  //超时中断
+  // 超时中断
   await Promise.race([Promise.all(signPromises1), sleep(timeout)]);
-  if (getSpace.length == 1) getSpace.push(" 0");
-  result.push(getSpace.join(""));
+  if (personalBonus.length === 0) personalBonus.push(0);
+  result.push(`- 个人签到：+${personalBonus.join(" + ")}M`);
 
   signPromises1 = [];
-  getSpace = [`${firstSpace}获得(M)`];
+  const familyBonus = [];
   const { familyInfoResp } = await cloudClient.getFamilyList();
   if (familyInfoResp) {
     const family = familyInfoResp.find((f) => f.userRole == 1);
     if (!family) return result;
-    result.push(`${firstSpace}开始签到家庭云 ID: ${family.familyId}`);
+    result.push(`- 家庭签到(ID: ${family.familyId})`);
     for (let i = 0; i < 1; i++) {
       signPromises1.push(
         (async () => {
           try {
             const res = await cloudClient.familyUserSign(family.familyId);
             if (!res.signStatus) {
-              getSpace.push(` ${res.bonusSpace}`);
+              familyBonus.push(res.bonusSpace);
             }
           } catch (e) {}
         })()
       );
     }
-    //超时中断
+    // 超时中断
     await Promise.race([Promise.all(signPromises1), sleep(timeout)]);
 
-    if (getSpace.length == 1) getSpace.push(" 0");
-    result.push(getSpace.join(""));
+    if (familyBonus.length === 0) familyBonus.push(0);
+    result.push(`  - 奖励：+${familyBonus.join(" + ")}M`);
   }
   return result;
 };
-
-let firstSpace = "  ";
 
 if (process.env.TYYS == null || process.env.TYYS == "") {
   logger.error("没有设置TYYS环境变量");
