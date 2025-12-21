@@ -13,6 +13,7 @@
 | `TYYS`            | 账号密码组，格式：`账号1 密码1 账号2 密码2`                                                                                                                                      | `u1 p1 u2 p2 `             |
 | `DINGTALK_TOKEN`  | 钉钉群机器人 `access_token`，可直接填完整 webhook，也可只填 token                                                                                                               | `https://oapi...access`    |
 | `DINGTALK_SECRET` | 钉钉机器人安全设置的 `secret`（仅当开启签名校验时需要）                                                                                                                            | `SECxxxxxxxx`              |
+| `DINGTALK_MSGTYPE`| 可选，钉钉消息类型：`markdown`（默认）或 `text`                                                                                                                                   | `markdown`                 |
 
 ---
 

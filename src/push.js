@@ -29,15 +29,34 @@ function resolveWebhook() {
   return `${base}${joiner}timestamp=${timestamp}&sign=${encodedSign}`;
 }
 
-async function sendNotify(title, message) {
-  const webhook = resolveWebhook();
-  const content = title ? `${title}\n${message || ""}` : (message || "");
-  const payload = {
+function buildPayload(title, message, msgType) {
+  const safeTitle = title || "通知";
+  const body = message || "";
+
+  if (msgType === "markdown") {
+    // DingTalk markdown supports a subset of Markdown; keep it simple
+    const text = title ? `**${title}**\n\n${body}` : body;
+    return {
+      msgtype: "markdown",
+      markdown: {
+        title: safeTitle,
+        text: text || safeTitle
+      }
+    };
+  }
+
+  return {
     msgtype: "text",
     text: {
-      content
+      content: title ? `${title}\n${body}` : body
     }
   };
+}
+
+async function sendNotify(title, message, options = {}) {
+  const webhook = resolveWebhook();
+  const msgType = (options.msgType || process.env.DINGTALK_MSGTYPE || "markdown").toLowerCase();
+  const payload = buildPayload(title, message, msgType);
   try {
     await got.post(webhook, { json: payload, responseType: "json" });
   } catch (err) {
