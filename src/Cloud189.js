@@ -40,32 +40,6 @@ const doTask = async (cloudClient) => {
   await Promise.race([Promise.all(signPromises1), sleep(timeout)]);
   if (personalBonus.length === 0) personalBonus.push(0);
   result.push(`- 个人签到：+${personalBonus.join(" + ")}M`);
-
-  signPromises1 = [];
-  const familyBonus = [];
-  const { familyInfoResp } = await cloudClient.getFamilyList();
-  if (familyInfoResp) {
-    const family = familyInfoResp.find((f) => f.userRole == 1);
-    if (!family) return result;
-    result.push(`- 家庭签到(ID: ${family.familyId})`);
-    for (let i = 0; i < 1; i++) {
-      signPromises1.push(
-        (async () => {
-          try {
-            const res = await cloudClient.familyUserSign(family.familyId);
-            if (!res.signStatus) {
-              familyBonus.push(res.bonusSpace);
-            }
-          } catch (e) {}
-        })()
-      );
-    }
-    // 超时中断
-    await Promise.race([Promise.all(signPromises1), sleep(timeout)]);
-
-    if (familyBonus.length === 0) familyBonus.push(0);
-    result.push(`  - 奖励：+${familyBonus.join(" + ")}M`);
-  }
   return result;
 };
 
@@ -116,7 +90,7 @@ const main = async () => {
 
     cloudClientMap.set(userName, cloudClient);
     try {
-      logger.log(`${i / 2 + 1}.账户 ${userNameInfo} 开始执行`);
+      logger.log(`### 账户 ${i / 2 + 1}: ${userNameInfo}`);
 
       let {
         cloudCapacityInfo: cloudCapacityInfo0,
@@ -132,24 +106,15 @@ const main = async () => {
       } = await cloudClient.getUserSizeInfo();
 
       logger.log(
-        `${firstSpace}实际：个人容量+ ${
+        `- 增量：个人 + ${
           (cloudCapacityInfo2.totalSize - cloudCapacityInfo0.totalSize) /
-          1024 /
-          1024
-        }M, 家庭容量+ ${
-          (familyCapacityInfo2.totalSize - familyCapacityInfo0.totalSize) /
           1024 /
           1024
         }M`
       );
       logger.log(
-        `${firstSpace}个人总容量：${(
+        `- 总量：个人 ${(
           cloudCapacityInfo2.totalSize /
-          1024 /
-          1024 /
-          1024
-        ).toFixed(2)}G, 家庭总容量：${(
-          familyCapacityInfo2.totalSize /
           1024 /
           1024 /
           1024
@@ -172,7 +137,7 @@ const main = async () => {
   } finally {
     const durationMs = Date.now() - startTime;
     const durationSec = (durationMs / 1000).toFixed(1);
-    logger.log(`运行时间：${durationSec}s`);
+    logger.log(`**运行时间：${durationSec}s**`);
     logger.log("\n\n");
     const events = recording.replay();
     const content = events.map((e) => `${e.data.join("")}`).join("  \n");
