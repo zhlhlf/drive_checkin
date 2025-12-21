@@ -99,20 +99,32 @@ const main = async () => {
         familyCapacityInfo: familyCapacityInfo2,
       } = await cloudClient.getUserSizeInfo();
 
+      const personalDeltaM = (
+        (cloudCapacityInfo2.totalSize - cloudCapacityInfo0.totalSize) /
+        1024 /
+        1024
+      ).toFixed(2);
+      const familyDeltaM = (
+        ((familyCapacityInfo2?.totalSize ?? 0) -
+          (familyCapacityInfo0?.totalSize ?? 0)) /
+        1024 /
+        1024
+      ).toFixed(2);
+      const personalTotalG = (
+        cloudCapacityInfo2.totalSize /
+        1024 /
+        1024 /
+        1024
+      ).toFixed(2);
+      const familyTotalG = (
+        (familyCapacityInfo2?.totalSize ?? 0) /
+        1024 /
+        1024 /
+        1024
+      ).toFixed(2);
+
       logger.log(
-        `- 增量：个人 + ${
-          (cloudCapacityInfo2.totalSize - cloudCapacityInfo0.totalSize) /
-          1024 /
-          1024
-        }M`
-      );
-      logger.log(
-        `- 总量：个人 ${(
-          cloudCapacityInfo2.totalSize /
-          1024 /
-          1024 /
-          1024
-        ).toFixed(2)}G`
+        `- 容量：个人 ${personalTotalG}G ( +${personalDeltaM}M ) | 家庭 ${familyTotalG}G ( +${familyDeltaM}M )`
       );
     } catch (e) {
       // Log only the error message to avoid noisy stack traces
