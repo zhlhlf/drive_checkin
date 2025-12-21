@@ -8,10 +8,11 @@
 需新建以下加密变量：
 
 
-| 变量名 🐈       | 说明 📌                                                                                                                                                   | 示例 🖼️      |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| `TYYS`          | 账号密码组，格式：`账号1 密码1 账号2 密码2`                                                                                                            | `u1 p1 u2 p2 ` |
-| `WX_PUSHER_UID` | 推送 UID（微信扫码-我的-我的 UID）[二维码](https://wxpusher.zjiecode.com/api/qrcode/4Ix7noqD3L7DMBoSlvig3t4hqjFWzPkdHqAYsg8IzkPreW7d8uGUHi9LJO4EcyJg.jpg) | `UID_123`      |
+| 变量名 🐈          | 说明 📌                                                                                                                                                                           | 示例 🖼️                   |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `TYYS`            | 账号密码组，格式：`账号1 密码1 账号2 密码2`                                                                                                                                      | `u1 p1 u2 p2 `             |
+| `DINGTALK_TOKEN`  | 钉钉群机器人 `access_token`，可直接填完整 webhook，也可只填 token                                                                                                               | `https://oapi...access`    |
+| `DINGTALK_SECRET` | 钉钉机器人安全设置的 `secret`（仅当开启签名校验时需要）                                                                                                                            | `SECxxxxxxxx`              |
 
 ---
 
@@ -49,11 +50,10 @@ export PRIVATE_THREADX=""
 # 个人签到是否只签主账号 true(是)  false为否会签到所有号  默认false
 export PRIVATE_ONLY_FIRST=""
 
-#推送相关
-export TELEGRAM_CHAT_ID=""
-export TELEGRAM_BOT_TOKEN=""
-export WX_PUSHER_APP_TOKEN=""
-export WX_PUSHER_UID=""
+# 推送相关（钉钉）
+export DINGTALK_TOKEN=""
+# 开启加签时需要
+export DINGTALK_SECRET=""
 npm run start
 ```
 

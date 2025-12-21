@@ -1,68 +1,66 @@
-const superagent = require("superagent");
-const { logger } = require("./logger");
+// DingTalk push notification module
+// by zhlhlf
 
-let WX_PUSHER_UID = process.env.WX_PUSHER_UID;
-let WX_PUSHER_APP_TOKEN = process.env.WX_PUSHER_APP_TOKEN;
+const got = require("got");
+const crypto = require("crypto");
+require("dotenv").config();
 
-let telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
-let telegramBotId = process.env.TELEGRAM_CHAT_ID;
+function buildWebhook(token) {
+  return token.startsWith("http") ? token : `https://oapi.dingtalk.com/robot/send?access_token=${token}`;
+}
 
-const pushTelegramBot = (title, desp) => {
-  if (!(telegramBotToken && telegramBotId)) {
-    return;
+function resolveWebhook() {
+  const token = process.env.DINGTALK_TOKEN || process.env.dingtalk_token || process.env.TOKEN_FALLBACK;
+  const secret = process.env.DINGTALK_SECRET || process.env.dingtalk_secret || process.env.SECRET_FALLBACK;
+  if (!token) {
+    throw new Error("DingTalk token is missing. Set DINGTALK_TOKEN.");
   }
-  const data = {
-    chat_id: telegramBotId,
-    text: `${title}\n\n${desp}`,
-  };
-  superagent
-  .post(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`)
-  .type("form")
-  .send(data)
-  .timeout(3000)
-  .then((res) => {
-    if (res.body?.ok) {
-      logger.info("TelegramBot推送成功");
-    } else {
-      logger.error(`TelegramBot推送失败:${JSON.stringify(res.body)}`);
+  const base = buildWebhook(token);
+  if (!secret) return base;
+
+  const timestamp = Date.now();
+  const stringToSign = `${timestamp}\n${secret}`;
+  const sign = crypto
+    .createHmac("sha256", secret)
+    .update(stringToSign)
+    .digest("base64");
+  const encodedSign = encodeURIComponent(sign);
+  const joiner = base.includes("?") ? "&" : "?";
+  return `${base}${joiner}timestamp=${timestamp}&sign=${encodedSign}`;
+}
+
+async function sendNotify(title, message) {
+  const webhook = resolveWebhook();
+  const content = title ? `${title}\n${message || ""}` : (message || "");
+  const payload = {
+    msgtype: "text",
+    text: {
+      content
     }
-  })
-  .catch((err) => {
-    logger.error(`TelegramBot推送失败:${err}`);
-  });
-};
-
-const pushWxPusher = (title, desp) => {
-  if (!(WX_PUSHER_APP_TOKEN && WX_PUSHER_UID)) {
-    return;
-  }
-  const data = {
-    appToken: WX_PUSHER_APP_TOKEN,
-    contentType: 1,
-    summary: title,
-    content: desp,
-    uids: [WX_PUSHER_UID],
   };
-  superagent
-    .post("https://wxpusher.zjiecode.com/api/send/message")
-    .send(data)
-    .timeout(3000)
-    .end((err, res) => {
-      if (err) {
-        logger.error(`wxPusher推送失败:${JSON.stringify(err)}`);
-        return;
-      }
-      const json = JSON.parse(res.text);
-      if (json.data[0].code !== 1000) {
-        logger.error(`wxPusher推送失败:${JSON.stringify(json)}`);
-      } else {
-        logger.info("wxPusher推送成功");
-      }
-    });
+  try {
+    await got.post(webhook, { json: payload, responseType: "json" });
+  } catch (err) {
+    console.log("DingTalk push failed", err.message || err);
+  }
+}
+
+// Keep backward compatibility with the old `push` export
+const push = sendNotify;
+
+module.exports = {
+  sendNotify,
+  push
 };
 
-const push = (title, desp) => {
-  pushTelegramBot(title, desp);
-};
-
-exports.push = push;
+// Allow direct execution: node push.js "Title" "Message body"
+if (require.main === module) {
+  const [,, cliTitle, ...rest] = process.argv;
+  const body = rest.join(" ");
+  sendNotify(cliTitle || "test push", body || "Hello from push.js").then(() => {
+    console.log("DingTalk push sent");
+  }).catch(err => {
+    console.error("DingTalk push failed", err.message || err);
+    process.exit(1);
+  });
+}

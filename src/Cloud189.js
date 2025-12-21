@@ -5,6 +5,9 @@ let { push } = require("./push");
 
 const { logger } = require("./logger");
 
+// Track start time for total runtime reporting
+const startTime = Date.now();
+
 const sleep = async (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
@@ -168,6 +171,9 @@ const main = async () => {
     if(process.env.PRIVATE_THREADX == null) process.env.PRIVATE_THREADX = 15
     await main();
   } finally {
+    const durationMs = Date.now() - startTime;
+    const durationSec = (durationMs / 1000).toFixed(1);
+    logger.log(`运行时间：${durationSec}s`);
     logger.log("\n\n");
     const events = recording.replay();
     const content = events.map((e) => `${e.data.join("")}`).join("  \n");
