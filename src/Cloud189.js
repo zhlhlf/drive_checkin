@@ -21,24 +21,21 @@ let timeout = 10000;
 
 const doTask = async (cloudClient) => {
   const result = [];
-  let signPromises1 = [];
   const personalBonus = [];
 
-  for (let m = 0; m < process.env.PRIVATE_THREADX; m++) {
-    signPromises1.push(
-      (async () => {
-        try {
-          const res1 = await cloudClient.userSign();
-          if (!res1.isSign && res1.netdiskBonus) {
-            personalBonus.push(res1.netdiskBonus);
-          }
-        } catch (e) {}
-      })()
-    );
-  }
-  // 超时中断
-  await Promise.race([Promise.all(signPromises1), sleep(timeout)]);
+  try {
+    const res1 = await Promise.race([
+      cloudClient.userSign(),
+      sleep(timeout).then(() => ({ timedOut: true }))
+    ]);
+    if (!res1 || res1.timedOut) throw new Error("个人签到超时");
+    if (!res1.isSign && res1.netdiskBonus) {
+      personalBonus.push(res1.netdiskBonus);
+    }
+  } catch (e) {}
+
   if (personalBonus.length === 0) personalBonus.push(0);
+  result.push(`- 个人签到：+${personalBonus.join(" + ")}M`);
   return result;
 };
 
@@ -129,7 +126,6 @@ const main = async () => {
 
 (async () => {
   try {
-    if(process.env.PRIVATE_THREADX == null) process.env.PRIVATE_THREADX = 15
     await main();
   } finally {
     const durationMs = Date.now() - startTime;

@@ -45,9 +45,6 @@ export TYYS=""
 # 指定签到的家庭云ID
 export TYY_FAMILY_ID=""
 
-# 私有云签到线程数量 默认10
-export PRIVATE_THREADX=""
-
 # 个人签到是否只签主账号 true(是)  false为否会签到所有号  默认false
 export PRIVATE_ONLY_FIRST=""
 
