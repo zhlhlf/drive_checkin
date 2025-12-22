@@ -76,7 +76,6 @@ if (require.main === module) {
   const [, , cliTitle, ...rest] = process.argv;
   let body = rest.join(" ");
   sendNotify(cliTitle || "test push", body || "test push --by zhlhlf").then(() => {
-    console.log("DingTalk push sent successfully");
   }).catch(err => {
     console.error(err.message || err);
   });
