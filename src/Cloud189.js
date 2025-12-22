@@ -84,11 +84,10 @@ const main = async () => {
 
     cloudClientMap.set(userName, cloudClient);
     try {
-      logger.log(`### 账户 ${i / 2 + 1}: ${userNameInfo}`);
+      logger.log(`### ${i / 2 + 1}: ${userNameInfo}`);
 
       let {
         cloudCapacityInfo: cloudCapacityInfo0,
-        familyCapacityInfo: familyCapacityInfo0,
       } = await cloudClient.getUserSizeInfo();
 
       const result = await doTask(cloudClient);
@@ -101,12 +100,6 @@ const main = async () => {
 
       const personalDeltaM = (
         (cloudCapacityInfo2.totalSize - cloudCapacityInfo0.totalSize) /
-        1024 /
-        1024
-      ).toFixed(2);
-      const familyDeltaM = (
-        ((familyCapacityInfo2?.totalSize ?? 0) -
-          (familyCapacityInfo0?.totalSize ?? 0)) /
         1024 /
         1024
       ).toFixed(2);
@@ -124,7 +117,7 @@ const main = async () => {
       ).toFixed(2);
 
       logger.log(
-        `- 容量：个人 ${personalTotalG}G ( +${personalDeltaM}M ) | 家庭 ${familyTotalG}G ( +${familyDeltaM}M )`
+        `- 容量：个人 ${personalTotalG}G ( +${personalDeltaM}M ) | 家庭 ${familyTotalG}G`
       );
     } catch (e) {
       // Log only the error message to avoid noisy stack traces
