@@ -51,7 +51,8 @@ const main = async () => {
       let c = await getCloudClient(userName,password)
       let space = await c.getUserSizeInfo();
       await c.userSign(),
-      console.log(`${(i/2)+1}/${Math.floor(jer.length/2)} ${userName}  ${(space.cloudCapacityInfo.totalSize/1024/1024/1024).toFixed(2)}G -- ${(space.familyCapacityInfo.totalSize/1024/1024/1024).toFixed(2)}G`)
+      h = ((i/2)+1)/Math.floor(jer.length/2)
+      console.log(`${h.padEnd(6,' ')}. ${userName}  ${(space.cloudCapacityInfo.totalSize/1024/1024/1024).toFixed(2)}G -- ${(space.familyCapacityInfo.totalSize/1024/1024/1024).toFixed(2)}G`)
       good.add(`${userName.padEnd(12,' ')}  ${password.padEnd(25,' ')} ${(space.cloudCapacityInfo.totalSize/1024/1024/1024).toFixed(2)}G -- ${(space.familyCapacityInfo.totalSize/1024/1024/1024).toFixed(2)}G`)
     }catch(e){
       console.log(`${userName}  --  ${e.message}`)
