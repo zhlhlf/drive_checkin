@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./src/Cloud189.js ",
+    "good": "node ./src/good.js ",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
