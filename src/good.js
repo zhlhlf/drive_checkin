@@ -100,7 +100,7 @@ const main = async () => {
     }
   });
 
-  const goodStr = good.map(item => `${item.userName.padEnd(12, ' ')} \t ${item.password} \t ${(item.cloudUsed / 1024 / 1024 / 1024).toFixed(2).padStart(8, ' ')}G ${(item.cloudSize / 1024 / 1024 / 1024).toFixed(2).padStart(8, ' ')}G     -- ${(item.familyUsed / 1024 / 1024 / 1024).toFixed(2).padStart(8, ' ')}G ${(item.familySize / 1024 / 1024 / 1024).toFixed(2).padStart(8, ' ')}G`).join('\n');
+  const goodStr = good.map(item => `${item.userName.padEnd(12, ' ')} \t ${item.password.padEnd(25, ' ')} \t ${(item.cloudUsed / 1024 / 1024 / 1024).toFixed(2).padStart(8, ' ')}G ${(item.cloudSize / 1024 / 1024 / 1024).toFixed(2).padStart(8, ' ')}G     -- ${(item.familyUsed / 1024 / 1024 / 1024).toFixed(2).padStart(8, ' ')}G ${(item.familySize / 1024 / 1024 / 1024).toFixed(2).padStart(8, ' ')}G`).join('\n');
   const badStr = bad.map(item => `${item.userName} \t ${item.password} \t ${item.error}`).join('\n');
 
   try {
