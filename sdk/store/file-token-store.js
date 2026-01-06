@@ -33,9 +33,21 @@ exports.FileTokenStore = void 0;
 const fs = __importStar(require("node:fs"));
 const promisesFs = __importStar(require("node:fs/promises"));
 const memstore_1 = require("./memstore");
+/**
+ * @public
+ */
+
+const createToken = () => {
+  let folderPath = ".token";
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+};
+
 class FileTokenStore extends memstore_1.MemoryStore {
     constructor(filePath) {
         super();
+        createToken()
         _FileTokenStore_instances.add(this);
         this.filePath = filePath;
         if (!filePath) {
@@ -46,14 +58,7 @@ class FileTokenStore extends memstore_1.MemoryStore {
             super.update(dataJson);
         }
     }
-    updateAccessToken(accessToken) {
-        super.updateAccessToken(accessToken);
-        return __classPrivateFieldGet(this, _FileTokenStore_instances, "m", _FileTokenStore_saveToFile).call(this, this.filePath, this.store);
-    }
-    updateRefreshToken(refreshToken) {
-        super.updateRefreshToken(refreshToken);
-        return __classPrivateFieldGet(this, _FileTokenStore_instances, "m", _FileTokenStore_saveToFile).call(this, this.filePath, this.store);
-    }
+
     update(token) {
         super.update(token);
         return __classPrivateFieldGet(this, _FileTokenStore_instances, "m", _FileTokenStore_saveToFile).call(this, this.filePath, this.store);
@@ -77,7 +82,7 @@ _FileTokenStore_instances = new WeakSet(), _FileTokenStore_loadFromFile = functi
     }
     return null;
 }, _FileTokenStore_saveToFile = function _FileTokenStore_saveToFile(filePath, data) {
-    return promisesFs.writeFile(filePath, JSON.stringify(data), {
+    return promisesFs.writeFile(filePath, JSON.stringify(data,null,2), {
         encoding: 'utf-8'
     });
 };

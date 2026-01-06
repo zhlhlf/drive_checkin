@@ -3,10 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.log = exports.Logger = exports.PADDING = exports.debug = void 0;
+exports.log = exports.Logger = exports.PADDING = void 0;
 const chalk_1 = __importDefault(require("chalk"));
 let printer = null;
-exports.debug = process.env.CLOUD189_VERBOSE === '1';
 exports.PADDING = 2;
 class Logger {
     constructor(stream) {
@@ -14,7 +13,7 @@ class Logger {
         this.messageTransformer = (it) => it;
     }
     get isDebugEnabled() {
-        return exports.debug;
+        return process.env.CLOUD189_VERBOSE == '1';
     }
     info(messageOrFields, message) {
         this.doLog(message, messageOrFields, 'info');

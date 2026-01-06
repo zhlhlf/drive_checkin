@@ -2,32 +2,29 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MemoryStore = void 0;
 const store_1 = require("./store");
+/**
+ * @public
+ */
 class MemoryStore extends store_1.Store {
     constructor() {
         super();
         this.store = {
             accessToken: '',
-            refreshToken: ''
+            refreshToken: '',
+            SSON: '',
+            JSESSIONID:''
         };
     }
-    getAccessToken() {
-        return Promise.resolve(this.store.accessToken);
-    }
-    updateAccessToken(accessToken) {
-        this.store.accessToken = accessToken;
-        return Promise.resolve();
-    }
-    updateRefreshToken(refreshToken) {
-        this.store.refreshToken = refreshToken;
-        return Promise.resolve();
-    }
-    getRefreshToken() {
-        return Promise.resolve(this.store.refreshToken);
+    get() {
+        return this.store;
     }
     update(token) {
+        var _a, _b;
         this.store = {
-            accessToken: token.accessToken,
-            refreshToken: token.refreshToken
+            accessToken: (_a = token.accessToken) !== null && _a !== void 0 ? _a : this.store.accessToken,
+            refreshToken: (_a = token.refreshToken) !== null && _a !== void 0 ? _a : this.store.refreshToken,
+            SSON: token.SSON || this.store.SSON,
+            JSESSIONID: token.JSESSIONID || this.store.JSESSIONID
         };
     }
 }

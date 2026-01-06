@@ -6,3 +6,8 @@ package-lock.json
 .token
 
 tyys_cookies.json
+*txt
+*json
+out
+*zip
+.DS_Store
