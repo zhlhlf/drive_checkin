@@ -95,7 +95,8 @@ const main = async () => {
         cloudCapacityInfo: cloudCapacityInfo2,
         familyCapacityInfo: familyCapacityInfo2,
       } = await cloudClient.getUserSizeInfo();
-
+      // 清空家庭回收站
+      // await cloudClient.cleanFamilyRecycle();
       const personalDeltaM = (
         (cloudCapacityInfo2.totalSize - cloudCapacityInfo0.totalSize) /
         1024 /

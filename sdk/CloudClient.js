@@ -98,6 +98,7 @@ class CloudAuthClient {
           userName: `${encrypt.pre}${usernameEncrypt}`,
           password: `${encrypt.pre}${passwordEncrypt}`,
         };
+        console.log(data);
         return data;
       }
     );
@@ -172,6 +173,7 @@ class CloudAuthClient {
       Object.assign({ appId: const_1.AppID }, (0, const_1.clientSuffix)()),
       param
     );
+    console.log(params)
     const res = await this.request
       .post(`${const_1.API_URL}/getSessionForPC.action`, {
         searchParams: params,
@@ -215,6 +217,7 @@ class CloudAuthClient {
         await tokenStore.update({ SSON: sso.split(";")[0] });
         return r;
       });
+    console.log(loginRes.toUrl)
     return await this.getSessionForPC({ redirectURL: loginRes.toUrl });
   }
   /**
@@ -579,6 +582,45 @@ class CloudClient {
   }
 
   //-----------------自定义方法--------------
+  // 排序参数
+  _sortParameter(data) {
+    if (!data) {
+      return "";
+    }
+    const e = Object.entries(data).map((t) => t.join("="));
+    e.sort((a, b) => (a > b ? 1 : a < b ? -1 : 0));
+    return e.join("&");
+  }
+
+  // 获取签名
+  _getSignature(data) {
+    const parameter = this._sortParameter(data);
+    return crypto_1.default.createHash("md5").update(parameter).digest("hex");
+  }
+
+  // 通过 SessionKey 获取 AccessToken
+  async getAccessTokenBySsKey(sessionKey=this.session.sessionKey) {
+    const appkey = "600100422";
+    const time = String(Date.now());
+    const signature = this._getSignature({
+      sessionKey,
+      Timestamp: time,
+      AppKey: appkey,
+    });
+    return got_1.default
+      .get(
+        `https://cloud.189.cn/api/open/oauth2/getAccessTokenBySsKey.action?sessionKey=${sessionKey}`,
+        {
+          headers: {
+            "Sign-Type": "1",
+            Signature: signature,
+            Timestamp: time,
+            Appkey: appkey
+          },
+        }
+      )
+      .json();
+  }
 
   async getMyFamilyUsers() {
     let familyId = await this.getFamilyId();
@@ -615,6 +657,24 @@ class CloudClient {
         log_1.log.debug(`exitFamily fail:`, error.response.body);
         return false;
       });
+  }
+
+  async cleanFamilyRecycle() {
+    let url = "https://api.cloud.189.cn/open/batch/createBatchTask.action";
+    let payload = {
+      type: "EMPTY_RECYCLE",
+      taskInfos: "[]",
+      targetFolderId: "",
+      familyId: await this.getFamilyId(),
+    };
+    let r = await this.request.post(`${url}`, {
+      // headers: {
+      //   "Content-Type": "application/x-www-form-urlencoded",
+      // },
+      form: payload,
+    });
+    log_1.log.debug(`clean ${await this.getFamilyId()} yes:`, r.body);
+    return true;
   }
 
   async inviteUserToFamily(account, familyId) {
