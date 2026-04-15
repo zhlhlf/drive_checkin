@@ -98,7 +98,6 @@ class CloudAuthClient {
           userName: `${encrypt.pre}${usernameEncrypt}`,
           password: `${encrypt.pre}${passwordEncrypt}`,
         };
-        console.log(data);
         return data;
       }
     );
@@ -173,7 +172,6 @@ class CloudAuthClient {
       Object.assign({ appId: const_1.AppID }, (0, const_1.clientSuffix)()),
       param
     );
-    console.log(params)
     const res = await this.request
       .post(`${const_1.API_URL}/getSessionForPC.action`, {
         searchParams: params,
@@ -217,7 +215,6 @@ class CloudAuthClient {
         await tokenStore.update({ SSON: sso.split(";")[0] });
         return r;
       });
-    console.log(loginRes.toUrl)
     return await this.getSessionForPC({ redirectURL: loginRes.toUrl });
   }
   /**
@@ -784,7 +781,6 @@ class CloudClient {
         form: body,
       })
       .json();
-    console.log(res);
     if (res.result == "10000") {
       console.log(
         `                                              ${this.username}   --  设备锁已关闭成功`
