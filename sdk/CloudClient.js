@@ -656,21 +656,55 @@ class CloudClient {
       });
   }
 
-  async cleanFamilyRecycle() {
-    let url = "https://api.cloud.189.cn/open/batch/createBatchTask.action";
+  async listRecycleBinFiles(isfamily = false) {
+    let url = "https://cloud.189.cn/api/portal/listRecycleBinFilesV3.action";
+    let searchParams = {
+      noCache: Math.random(),
+      pageNum: 1,
+      pageSize: 30,
+      iconOption: 1,
+      family: isfamily,
+    };
+    if (isfamily) {
+      searchParams.familyId = await this.getFamilyId();
+    }
+    return this.request
+      .get(`${url}`, {
+        searchParams,
+      })
+      .json();
+  }
+
+  async cleanAllRecycle(isfamily = false) {
+    // let url = "https://api.cloud.189.cn/open/batch/createBatchTask.action";
+    let url = "https://cloud.189.cn/api/open/batch/createBatchTask.action";
     let payload = {
       type: "EMPTY_RECYCLE",
       taskInfos: "[]",
       targetFolderId: "",
-      familyId: await this.getFamilyId(),
     };
+    if (isfamily) {
+      payload.familyId = await this.getFamilyId();
+    }
+    const beforeRecycle = await this.listRecycleBinFiles(isfamily);
+    const beforeCount = beforeRecycle.count ?? 0;
+    log_1.log.debug(
+      `${isfamily ? "family" : "personal"} recycle before clean count:`,
+      beforeCount
+    );
     let r = await this.request.post(`${url}`, {
       // headers: {
       //   "Content-Type": "application/x-www-form-urlencoded",
       // },
       form: payload,
     });
-    log_1.log.debug(`clean ${await this.getFamilyId()} yes:`, r.body);
+    log_1.log.debug(`clean ${isfamily ? await this.getFamilyId() : "personal"} yes:`, r.body);
+    const afterRecycle = await this.listRecycleBinFiles(isfamily);
+    const afterCount = afterRecycle.count ?? 0;
+    log_1.log.debug(
+      `${isfamily ? "family" : "personal"} recycle after clean count:`,
+      afterCount
+    );
     return true;
   }
 
