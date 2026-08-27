@@ -13,7 +13,7 @@ function resolveWebhook() {
   const token = process.env.DINGTALK_TOKEN || process.env.dingtalk_token || process.env.TOKEN_FALLBACK;
   const secret = process.env.DINGTALK_SECRET || process.env.dingtalk_secret || process.env.SECRET_FALLBACK;
   if (!token) {
-    throw new Error("DingTalk token is missing. Set DINGTALK_TOKEN.");
+    return null;
   }
   const base = buildWebhook(token);
   if (!secret) return base;
@@ -92,6 +92,10 @@ async function sendNotify(title, message, options = {}) {
 
   // Fall back to DingTalk
   const webhook = resolveWebhook();
+  if (!webhook) {
+    return;
+  }
+
   const format = (options.format || process.env.DINGTALK_MSGTYPE || "markdown").toLowerCase();
   const payload = buildPayload(title, message, format);
   a = await got.post(webhook, { json: payload, responseType: "json" });

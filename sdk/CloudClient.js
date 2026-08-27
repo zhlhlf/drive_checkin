@@ -56,7 +56,6 @@ var _CloudAuthClient_builLoginForm,
   _CloudClient_getAccessTokenBySsKey;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CloudClient = exports.CloudAuthClient = void 0;
-const url_1 = __importDefault(require("url"));
 const got_1 = __importDefault(require("got"));
 const got = __importDefault(require("got"));
 const log_1 = require("./log");
@@ -319,9 +318,8 @@ class CloudClient {
           async (options) => {
             if (options.url.href.includes(const_1.API_URL)) {
               const accessToken = await this.getAccessToken();
-              const { query } = url_1.default.parse(
-                options.url.toString(),
-                true
+              const query = Object.fromEntries(
+                new URL(options.url).searchParams.entries()
               );
               const time = String(Date.now());
               const signData = Object.assign(
@@ -673,6 +671,97 @@ class CloudClient {
         searchParams,
       })
       .json();
+  }
+
+  async listFiles(folderId = "") {
+    let url = "https://cloud.189.cn/api/open/file/listFiles.action";
+    let searchParams = {
+      pageSize: 60,
+      pageNum: 1,
+      mediaType: 0,
+      iconOption: 5,
+      orderBy: "lastOpTime",
+      descending: true,
+    };
+    if (folderId) searchParams.folderId = folderId;
+    const response = await this.request
+      .get(`${url}`, {
+        searchParams,
+      })
+      .json();
+    const fileListAO = response?.fileListAO ?? {};
+    const fileList = fileListAO.fileList ?? [];
+    const folderList = fileListAO.folderList ?? [];
+    const visibleWidth = (value) => {
+      const text = String(value);
+      return [...text].reduce((total, char) => {
+        const code = char.codePointAt(0);
+        if (
+          code === 0 ||
+          code < 32 ||
+          (code >= 0x7f && code < 0xa0)
+        ) {
+          return total;
+        }
+        if (
+          (code >= 0x1100 &&
+            (code <= 0x115f ||
+              code === 0x2329 ||
+              code === 0x232a ||
+              (code >= 0x2e80 && code <= 0xa4cf && code !== 0x303f) ||
+              (code >= 0xac00 && code <= 0xd7a3) ||
+              (code >= 0xf900 && code <= 0xfaff) ||
+              (code >= 0xfe10 && code <= 0xfe19) ||
+              (code >= 0xfe30 && code <= 0xfe6f) ||
+              (code >= 0xff00 && code <= 0xff60) ||
+              (code >= 0xffe0 && code <= 0xffe6) ||
+              (code >= 0x1f300 && code <= 0x1f64f) ||
+              (code >= 0x1f900 && code <= 0x1f9ff) ||
+              (code >= 0x20000 && code <= 0x3fffd)))
+        ) {
+          return total + 2;
+        }
+        return total + 1;
+      }, 0);
+    };
+    const rows = [
+      ...folderList.map((item) => ({
+        type: "📁",
+        name: item.name || "<unnamed>",
+        id: item.id !== undefined ? String(item.id) : "-",
+        size: item.size !== undefined ? `${item.size}` : "-",
+        time: item.lastOpTime || item.createDate || "-",
+      })),
+      ...fileList.map((item) => ({
+        type: "📄",
+        name: item.name || "<unnamed>",
+        id: item.id !== undefined ? String(item.id) : "-",
+        size: item.size !== undefined ? `${item.size}` : "-",
+        time: item.lastOpTime || item.createDate || "-",
+      })),
+    ];
+    const columns = ["T", "NAME", "ID", "SIZE", "LAST_OP_TIME"];
+    const widths = columns.map((column, index) => {
+      const values = rows.map((row) => [row.type, row.name, row.id, row.size, row.time][index]);
+      return Math.max(column.length, ...values.map((value) => visibleWidth(value)));
+    });
+    const formatRow = (values) =>
+      values
+        .map((value, index) => {
+          const text = String(value);
+          return text + " ".repeat(Math.max(0, widths[index] - visibleWidth(text)));
+        })
+        .join(" | ");
+    const lines = [
+      `listFiles | count=${fileListAO.count ?? 0} | fileListSize=${fileListAO.fileListSize ?? 0} | lastRev=${response?.lastRev ?? "-"}`,
+      formatRow(columns),
+      widths.map((width) => "-".repeat(width)).join("-|-"),
+      ...(rows.length
+        ? rows.map((row) => formatRow([row.type, row.name, row.id, row.size, row.time]))
+        : ["- no items -"]),
+    ];
+    log_1.log.debug(lines.join("\n"));
+    return response;
   }
 
   async cleanAllRecycle(isfamily = false) {
